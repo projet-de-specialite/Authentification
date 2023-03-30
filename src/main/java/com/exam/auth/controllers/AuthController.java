@@ -65,15 +65,14 @@ public class AuthController {
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
-    Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    Authentication authentication = authenticationManager
+        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String jwt = jwtUtils.generateJwtToken(authentication);
 
     UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    List<String> roles = userDetails.getAuthorities().stream()
-        .map(item -> item.getAuthority())
+    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
         .collect(Collectors.toList());
 
     return ResponseEntity.ok(new JwtResponse(jwt,
@@ -86,15 +85,11 @@ public class AuthController {
   @PostMapping("/signup")
   public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
     if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-      return ResponseEntity
-          .badRequest()
-          .body(new MessageResponse("Error: Username is already taken!"));
+      return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
     }
 
     if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-      return ResponseEntity
-          .badRequest()
-          .body(new MessageResponse("Error: Email is already in use!"));
+      return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
     }
 
     // Create new user's account
@@ -109,7 +104,9 @@ public class AuthController {
       Role userRole = roleRepository.findByName(ERole.ROLE_USER)
           .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
       roles.add(userRole);
-    } else {
+    }
+
+    else {
       strRoles.forEach(role -> {
         switch (role) {
           case "admin":
@@ -129,7 +126,9 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         }
-      });
+      }
+
+      );
     }
 
     user.setRoles(roles);
@@ -142,6 +141,7 @@ public class AuthController {
   @DeleteMapping("/users/{id}")
   public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
     Optional<User> userOptional = userRepository.findById(id);
+
     if (!userOptional.isPresent()) {
       return ResponseEntity.badRequest().body(new MessageResponse("Error: User not found!"));
     }
@@ -155,6 +155,24 @@ public class AuthController {
   public ResponseEntity<List<User>> getAllUsers() {
     List<User> users = userRepository.findAll();
     return ResponseEntity.ok(users);
+  }
+
+  @PutMapping("/users/{id}")
+  public ResponseEntity<?> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
+    Optional<User> userOptional = userRepository.findById(id);
+
+    if (!userOptional.isPresent()) {
+      return ResponseEntity.badRequest().body(new MessageResponse("Error: User not found!"));
+    }
+
+    User existingUser = userOptional.get();
+    existingUser.setUsername(user.getUsername());
+    existingUser.setEmail(user.getEmail());
+    existingUser.setPassword(encoder.encode(user.getPassword()));
+    existingUser.setRoles(user.getRoles());
+    userRepository.save(existingUser);
+
+    return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
   }
 
 }
