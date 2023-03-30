@@ -157,20 +157,4 @@ public class AuthController {
     return ResponseEntity.ok(users);
   }
 
-  @PutMapping("/users/{id}")
-  public ResponseEntity<?> updateUser(@PathVariable("id") Long id, @RequestBody User update) {
-    Optional<User> userOptional = userRepository.findById(id);
-    if (!userOptional.isPresent()) {
-      return ResponseEntity.badRequest().body(new MessageResponse("Error: User not found!"));
-    }
-
-    User user = userOptional.get();
-    user.setUsername(update.getUsername());
-    user.setEmail(update.getEmail());
-    user.setPassword(encoder.encode(update.getPassword()));
-    userRepository.save(user);
-
-    return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
-  }
-
 }
