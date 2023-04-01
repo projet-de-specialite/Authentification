@@ -157,6 +157,11 @@ public class AuthController {
     return ResponseEntity.ok(users);
   }
 
+  /**
+   * @param id
+   * @param user
+   * @return
+   */
   @PutMapping("/users/{id}")
   public ResponseEntity<?> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
     Optional<User> userOptional = userRepository.findById(id);
@@ -166,10 +171,37 @@ public class AuthController {
     }
 
     User existingUser = userOptional.get();
+
     existingUser.setUsername(user.getUsername());
     existingUser.setEmail(user.getEmail());
-    existingUser.setPassword(encoder.encode(user.getPassword()));
-    existingUser.setRoles(user.getRoles());
+    existingUser.setPassword(encoder.encode(user.getPassword())); // vous pouvez modifier cela pour que le mot de passe
+                                                                  // ne soit mis à jour que s'il est fourni
+
+    Set<Role> existingRoles = existingUser.getRoles();
+    existingRoles.clear();
+
+    Set<Role> strRoles = user.getRoles();
+
+    if (strRoles != null) {
+      strRoles.forEach(role -> {
+        if (role.equals("admin")) {
+          Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          existingRoles.add(adminRole);
+        } else if (role.equals("mod")) {
+          Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          existingRoles.add(modRole);
+        } else {
+          Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+          existingRoles.add(userRole);
+        }
+      });
+    }
+
+    existingUser.setRoles(existingRoles);
+
     userRepository.save(existingUser);
 
     return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
