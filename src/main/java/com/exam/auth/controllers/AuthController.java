@@ -62,26 +62,6 @@ public class AuthController {
     return userRepository.findAll();
   }
 
-  @PostMapping("/signin")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
-    Authentication authentication = authenticationManager
-        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    String jwt = jwtUtils.generateJwtToken(authentication);
-
-    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-        .collect(Collectors.toList());
-
-    return ResponseEntity.ok(new JwtResponse(jwt,
-        userDetails.getId(),
-        userDetails.getUsername(),
-        userDetails.getEmail(),
-        roles));
-  }
-
   @PostMapping("/signup")
   public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
     if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -157,54 +137,55 @@ public class AuthController {
     return ResponseEntity.ok(users);
   }
 
-  /**
-   * @param id
-   * @param user
-   * @return
+  /*
+   * @PutMapping("/users/{id}")
+   * public ResponseEntity<?> updateUser(@PathVariable("id") Long id, @RequestBody
+   * User user) {
+   * Optional<User> userOptional = userRepository.findById(id);
+   * 
+   * if (!userOptional.isPresent()) {
+   * return ResponseEntity.badRequest().body(new
+   * MessageResponse("Error: User not found!"));
+   * }
+   * 
+   * User existingUser = userOptional.get();
+   * 
+   * existingUser.setUsername(user.getUsername());
+   * existingUser.setEmail(user.getEmail());
+   * existingUser.setPassword(encoder.encode(user.getPassword())); // vous pouvez
+   * modifier cela pour que le mot de passe
+   * // ne soit mis à jour que s'il est fourni
+   * 
+   * Set<Role> existingRoles = existingUser.getRoles();
+   * existingRoles.clear();
+   * 
+   * Set<Role> strRoles = user.getRoles();
+   * 
+   * if (strRoles != null) {
+   * strRoles.forEach(role -> {
+   * if (role.equals("admin")) {
+   * Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+   * .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+   * existingRoles.add(adminRole);
+   * } else if (role.equals("mod")) {
+   * Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
+   * .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+   * existingRoles.add(modRole);
+   * } else {
+   * Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+   * .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+   * existingRoles.add(userRole);
+   * }
+   * });
+   * }
+   * 
+   * existingUser.setRoles(existingRoles);
+   * 
+   * userRepository.save(existingUser);
+   * 
+   * return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
+   * }
+   * 
    */
-  @PutMapping("/users/{id}")
-  public ResponseEntity<?> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
-    Optional<User> userOptional = userRepository.findById(id);
-
-    if (!userOptional.isPresent()) {
-      return ResponseEntity.badRequest().body(new MessageResponse("Error: User not found!"));
-    }
-
-    User existingUser = userOptional.get();
-
-    existingUser.setUsername(user.getUsername());
-    existingUser.setEmail(user.getEmail());
-    existingUser.setPassword(encoder.encode(user.getPassword())); // vous pouvez modifier cela pour que le mot de passe
-                                                                  // ne soit mis à jour que s'il est fourni
-
-    Set<Role> existingRoles = existingUser.getRoles();
-    existingRoles.clear();
-
-    Set<Role> strRoles = user.getRoles();
-
-    if (strRoles != null) {
-      strRoles.forEach(role -> {
-        if (role.equals("admin")) {
-          Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          existingRoles.add(adminRole);
-        } else if (role.equals("mod")) {
-          Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          existingRoles.add(modRole);
-        } else {
-          Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          existingRoles.add(userRole);
-        }
-      });
-    }
-
-    existingUser.setRoles(existingRoles);
-
-    userRepository.save(existingUser);
-
-    return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
-  }
 
 }

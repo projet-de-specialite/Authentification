@@ -24,6 +24,7 @@ public class TestService {
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         // Récupérer la liste des autorités
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+
         // Vérifier que la liste contient exactement un élément avec le nom "ROLE_USER"
 
     }
