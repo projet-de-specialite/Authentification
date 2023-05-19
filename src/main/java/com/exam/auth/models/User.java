@@ -84,7 +84,4 @@ public class User {
     this.roles = roles;
   }
 
-  public User orElseThrow(Object object) {
-    return null;
-  }
 }
