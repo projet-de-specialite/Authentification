@@ -150,15 +150,39 @@
      - Response:
           Status: 204 No Content
      
-          
+  ## Authentication && Security        
               
+        spring.datasource.url = ${SPRING_DATASOURCE_URL}
+        spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+        spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+        spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5InnoDBDialect
+        spring.jpa.hibernate.ddl-auto=update
+
+        # App Properties
+        bezkoder.app.jwtSecret=bezKoderSecretKey
+        bezkoder.app.jwtExpirationMs=86400000
+      
+      The **jwtSecret** key is used to sign the token, ensuring its integrity and authenticity. When validating a token, the same key is used to verify the signature and ensure that the token has not been tampered with or falsified.
+
+    **AuthTokenFilter**:
+
+    This filter handles the validation and extraction of the JWT token, checks its validity, loads the corresponding user details, and authenticates the user by placing them in the security context. This secures the application's resources and endpoints by ensuring that only authenticated and authorized users have access to them.
+
+    **JwtUtils**
+
+    JwtUtils provides methods to generate and validate JWT tokens, as well as extract information such as the username from the token. This ensures secure user authentication and verifies the integrity and validity of the JWT tokens used in the authentication system.        
+
+
           
+   ## Environment variable    
           
-          
-          
-          
-          
-          
+         **.env** 
+         
+            SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/testdb
+            SPRING_DATASOURCE_USERNAME=root
+            SPRING_DATASOURCE_PASSWORD=
+
           
           
           
